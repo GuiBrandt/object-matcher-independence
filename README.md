@@ -1,4 +1,4 @@
-# [WIP] Object matcher independence
+# Object matcher independence
 
 An experiment on automated proof of independence of JSON object matchers using a SAT solver.
 
@@ -13,44 +13,47 @@ and any two distinct tests do not).
  
 ## Overview
 
-This implementation essentially converts a given object matcher into CNF and then uses
-[MiniSat](http://minisat.se/) to solve SAT for it.
+This implementation essentially converts a given object matcher into a boolean formula and then
+uses [minisat-solver](https://hackage.haskell.org/package/minisat-solver-0.1) to solve SAT for it.
+This yields a list of assignments that satisfy such formula (if any), which can then be converted
+into a list of attribute assignments on the form `attributeX == "valueX"` or `attributeX != "valueX"`
+and used to generate examples of objects that satisfy both matchers.
 
-### Transforming an Object Matcher into CNF
+### Object Matchers
 
-There exist algorithms to convert any logical expression into CNF, for example:
-https://www.cs.jhu.edu/~jason/tutorials/convert-to-CNF.html
+An object matcher is either:
+- An attribute matcher, i.e. a predicate of the form `x ∈ S` for some attribute named `x` and set
+  of strings `S`;
+- The conjunction of two or more object matchers;
+- The negation of an object matcher.
 
-Since the object matchers are essentially just logical expressions where equality tests are
-like free variables, we can use one such algorithm to convert them into CNF.
+### Object Matcher ➝ Boolean Formula
 
-However, there's one more feature of equality tests that affects how matchers are converted into
-logical expressions: they're mutually exclusive.
-This means that if `x = (attribute1 == "value1")` and `y = (attribute1 == "value2")`, then
-`x -> !y`, and `y -> !x`.
+It's straightforward to express any object matcher as a boolean formula by replacing attribute
+matchers by disjunctions of attribute equalities then attribute equalities by variables.
 
-So, besides converting the logical expression corresponding to the object matcher into CNF, we
-generate all such mutually exclusivity clauses and prepend them to the generated CNF expression.
+Since conjunction and negation are [functionally complete][fcomplete], this means that object
+matchers are too.
 
-As an example, the following matchers:
-- `attribute1 ∈ {"value1", "value2"}`
-- `attribute2 = "value2" && attribute1 = "value1"`
-Give rise to the following CNF expression:
-```
-(!(attribute1 == "value1") || !(attribute1 == "value2")) && (!(attribute1 == "value1") || !(attribute1 == "value3")) && (!(attribute1 == "value2") || !(attribute1 == "value3")) && (!(attribute1 == "value1") || !(attribute1 == "value2")) && (attribute1 == "value1" || attribute1 == "value2") && (attribute2 == "value2") && (attribute1 == "value3")
-```
-Which, simplified, would be:
-```
-(!x || !y) && (!x || !z) && (!y || !z) && (x || y) && w && z
-```
-In a more readable form:
-```
-x -> !y
-x -> !z
-y -> !z
-(x || y) && w && z
-```
-Which is not satisfiable, by the way, because you can't have neither `z && x` nor `z && y`.
+[fcomplete]: https://en.wikipedia.org/wiki/Functional_completeness
 
-Also, notice that the conditions `y -> !x`, `z -> !x` and `z -> !y` are implied by `x -> !y`,
-`x -> !z` and `y -> !z`, respectively.
+Additionally, since equalities are mutually exclusive, an attribute matcher `x ∈ S` implies
+`∀ a, b ∈ S (x == a -> x != b)`. When converting object matchers to boolean formulas, this is taken
+into account and mutually exclusivity clauses (which we call "functional dependencies") are added to
+the formula before solving SAT.
+
+For instance, the attribute matcher `x ∈ {"a", "b"}` would be translated into:
+`(x == a -> x != b) ∧ (x == "a" ∨ x == "b")`. Notice that `x == a -> x != b` already implies
+`x == b -> x != a`, so there's no need to add it to the formula.
+
+In general, for any given attribute matcher `x ∈ S`, if `k = |S|`, then `k² / 2` functional dependencies
+are added to the final formula.
+For arbitrary object matchers, `k` is equal to the sum of the sizes of the unions of all values matched
+for each attribute.
+
+### Boolean Assignments ➝ Objects
+
+The package used for solving SAT is conveniently parameterized by a type for variables. This means that
+we can treat attribute equalities as variables, so it's fairly easy to convert answers from the SAT
+problem into attribute equalities/inequalities (if a variable `x == "a"` must be true to satisfy the
+formula, then `x = "a"`, otherwise `x != "a"`).
