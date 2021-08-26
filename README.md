@@ -14,7 +14,7 @@ and any two distinct tests do not).
 ## Overview
 
 This implementation essentially converts a given object matcher into CNF and then uses
-[Sat4j][sat4j] to solve SAT for it (see [example.kt][example]).
+[MiniSat](http://minisat.se/) to solve SAT for it.
 
 ### Transforming an Object Matcher into CNF
 
@@ -54,6 +54,3 @@ Which is not satisfiable, by the way, because you can't have neither `z && x` no
 
 Also, notice that the conditions `y -> !x`, `z -> !x` and `z -> !y` are implied by `x -> !y`,
 `x -> !z` and `y -> !z`, respectively.
-
-[sat4j]: https://www.sat4j.org/
-[example]: ./src/main/kotlin/io/github/guibrandt/matchers/example.kt

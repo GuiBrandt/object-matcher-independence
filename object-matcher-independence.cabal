@@ -1,0 +1,71 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 1026f49be9f16a6929c25495ddaa92cbae5347d2764062483747371140c649a2
+
+name:           object-matcher-independence
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/GuiBrandt/object-matcher-independence#readme>
+homepage:       https://github.com/githubuser/object-matcher-independence#readme
+bug-reports:    https://github.com/githubuser/object-matcher-independence/issues
+author:         Guilherme G. Brandt
+maintainer:     gui.g.brandt@gmail.com
+copyright:      2021 Guilherme G. Brandt
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/object-matcher-independence
+
+library
+  exposed-modules:
+      Data.AttributeAssignment
+      Data.ObjectMatcher
+      Lib
+      Utils
+  other-modules:
+      Paths_object_matcher_independence
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , minisat-solver
+  default-language: Haskell2010
+
+executable object-matcher-independence-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_object_matcher_independence
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , minisat-solver
+    , object-matcher-independence
+  default-language: Haskell2010
+
+test-suite object-matcher-independence-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_object_matcher_independence
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , minisat-solver
+    , object-matcher-independence
+  default-language: Haskell2010
