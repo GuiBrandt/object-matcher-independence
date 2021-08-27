@@ -36,15 +36,11 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - object-matcher-independence
-
-tests:
-  object-matcher-independence-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - object-matcher-independence
+    - object-matcher-independence    
+    - unordered-containers
+    - aeson
+    - aeson-pretty
+    - attoparsec
+    - utf8-string
+    - vector
+    - text

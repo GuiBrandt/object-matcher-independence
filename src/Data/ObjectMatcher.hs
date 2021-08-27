@@ -10,7 +10,7 @@ data ObjectMatcher =
 
 instance Show ObjectMatcher where
     show (Attribute name [value]) = name ++ " = \"" ++ value ++ "\""
-    show (Attribute name values)  = name ++ " ∈ {" ++ intercalate ", " values ++ "}"
+    show (Attribute name values)  = name ++ " ∈ {" ++ intercalate ", " (map (\x -> "\"" ++ x ++ "\"") values) ++ "}"
     show (Conjunction matchers)   = intercalate " ∧ " $ show <$> matchers
     show (Not matcher)            = "¬(" ++ show matcher ++ ")"
 

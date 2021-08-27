@@ -3,8 +3,8 @@ module Data.AttributeAssignment where
 data AttributeAssignment = String :==: String | String :!=: String deriving (Eq, Ord)
 
 instance Show AttributeAssignment where
-    show (name :==: value) = name ++ " == \"" ++ value ++ "\""
-    show (name :!=: value) = name ++ " != \"" ++ value ++ "\""
+    show (name :==: value) = name ++ " = \"" ++ value ++ "\""
+    show (name :!=: value) = name ++ " ≠ \"" ++ value ++ "\""
 
 attributeName :: AttributeAssignment -> String
 attributeName (name :==: _) = name

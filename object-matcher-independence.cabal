@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1026f49be9f16a6929c25495ddaa92cbae5347d2764062483747371140c649a2
+-- hash: 89c9cdae1cd9dcc77c4ebef5b004867f4b61d097b1503f55881516a949de9524
 
 name:           object-matcher-independence
 version:        0.1.0.0
@@ -49,23 +49,15 @@ executable object-matcher-independence-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , aeson-pretty
+    , attoparsec
+    , base >=4.7 && <5
     , containers
     , minisat-solver
     , object-matcher-independence
-  default-language: Haskell2010
-
-test-suite object-matcher-independence-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Paths_object_matcher_independence
-  hs-source-dirs:
-      test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , containers
-    , minisat-solver
-    , object-matcher-independence
+    , text
+    , unordered-containers
+    , utf8-string
+    , vector
   default-language: Haskell2010

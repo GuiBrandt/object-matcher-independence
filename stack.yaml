@@ -2,5 +2,5 @@ packages:
 - .
 extra-deps:
 - minisat-solver-0.1
-resolver:
-  compiler: ghc-8.10.5
+resolver: lts-18.7
+compiler: ghc-8.10.5
