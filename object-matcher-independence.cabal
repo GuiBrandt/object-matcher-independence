@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 89c9cdae1cd9dcc77c4ebef5b004867f4b61d097b1503f55881516a949de9524
+-- hash: 31ad6ea862f7c4c2607c7b3fb205fecb33eac311d111844099f127323cb719d8
 
 name:           object-matcher-independence
 version:        0.1.0.0
@@ -29,8 +29,8 @@ library
   exposed-modules:
       Data.AttributeAssignment
       Data.ObjectMatcher
+      Internal.Utils
       Lib
-      Utils
   other-modules:
       Paths_object_matcher_independence
   hs-source-dirs:
@@ -41,9 +41,10 @@ library
     , minisat-solver
   default-language: Haskell2010
 
-executable object-matcher-independence-exe
+executable objmind
   main-is: Main.hs
   other-modules:
+      Parser
       Paths_object_matcher_independence
   hs-source-dirs:
       app
@@ -54,6 +55,7 @@ executable object-matcher-independence-exe
     , attoparsec
     , base >=4.7 && <5
     , containers
+    , maximal-cliques
     , minisat-solver
     , object-matcher-independence
     , text

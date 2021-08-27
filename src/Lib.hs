@@ -2,7 +2,7 @@ module Lib ( ObjectMatcher(..), AttributeAssignment(..), intersection ) where
 
 import Data.ObjectMatcher
 import Data.AttributeAssignment
-import Utils
+import Internal.Utils
 
 import Data.List (tails, intercalate, find, groupBy)
 import Data.Map (Map)

@@ -57,3 +57,47 @@ The package used for solving SAT is conveniently parameterized by a type for var
 we can treat attribute equalities as variables, so it's fairly easy to convert answers from the SAT
 problem into attribute equalities/inequalities (if a variable `x == "a"` must be true to satisfy the
 formula, then `x = "a"`, otherwise `x != "a"`).
+
+## Usage
+
+Use `stack install` to install the executable into the user path.
+
+The executable `objmind` (acronym for OBJect Matcher INDependence) reads a stream of JSON objects from
+the standard input and outputs a report on whether they are independent, and what the maximal independent
+sets are, in case they aren't. 
+
+The JSON objects are converted to object matchers by parsing arrays as conjunctions, object of the form
+`{"not": {...}}` as negations and objects of the form `{"attribute":"...", "values":[...]}` as attribute
+matchers. Additional keys on objects are ignored and negations take priority over attribute matchers. 
+
+For instance:
+
+```shell
+$ cat > matchers.in
+{"attribute": "x", "values": ["1"]}
+[
+    {"attribute": "x", "values": ["2"]},
+    {"attribute": "y", "values": ["3", "4"]}
+]
+{"not": {"attribute": "y", "values": ["3"]}}
+
+$ objmind < matchers.in
+Found overlapping matchers:
+
+x = "1"
+¬(y = "3")
+
+Overlapping instances (at most 10 shown):
+ - x = "1", y ≠ "3"
+
+x = "2" ∧ y ∈ {"3", "4"}
+¬(y = "3")
+
+Overlapping instances (at most 10 shown):
+ - x = "2", y = "4"
+
+Maximal independent sets:
+ - x = "1"
+   x = "2" ∧ y ∈ {"3", "4"}
+ - ¬(y = "3")
+```

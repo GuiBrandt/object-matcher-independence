@@ -1,4 +1,4 @@
-module Utils where
+module Internal.Utils where
 
 import Data.List (tails)
 

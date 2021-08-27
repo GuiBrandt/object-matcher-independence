@@ -28,7 +28,7 @@ library:
   source-dirs: src
 
 executables:
-  object-matcher-independence-exe:
+  objmind:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -44,3 +44,4 @@ executables:
     - utf8-string
     - vector
     - text
+    - maximal-cliques

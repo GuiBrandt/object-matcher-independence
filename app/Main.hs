@@ -2,23 +2,23 @@
 
 module Main where
 
-import System.IO (isEOF)
+import Parser (objectMatcher)
 
 import Lib (intersection, ObjectMatcher(..), AttributeAssignment)
-import Utils (pairs)
+import Internal.Utils (pairs)
 
-import Control.Monad ((<=<), forM_)
+import Control.Monad (forM_)
 
 import Data.List (intercalate)
-import Data.Aeson (json', Value(Array, Object, String))
-import Data.Aeson.Encode.Pretty (encodePretty)
-import Data.Attoparsec.ByteString (parseOnly, many1')
 import qualified Data.ByteString.UTF8 as BSU
-import qualified Data.ByteString.Lazy.UTF8 as BLU
-import qualified Data.Vector as V
-import qualified Data.Text as T
-import Data.HashMap.Strict ((!))
+import Data.Attoparsec.ByteString (parseOnly, many1')
+import Data.Algorithm.MaximalCliques (getMaximalCliques)
+import qualified Data.HashSet as Set
 import qualified Data.HashMap.Strict as Map
+
+import System.IO (isEOF)
+import System.Exit (exitWith, ExitCode(..), exitSuccess)
+import Data.Foldable (foldl')
 
 readAll :: IO String
 readAll = do done <- isEOF
@@ -26,50 +26,47 @@ readAll = do done <- isEOF
              else do line <- getLine
                      (line ++) <$> readAll
 
-parseObjectMatchers :: String -> Either String [ObjectMatcher]
-parseObjectMatchers = allOrNone . fmap valueToObjectMatcher <=< parseOnly (many1' json') . BSU.fromString
-    where
-        allOrNone :: [Either a b] -> Either a [b]
-        allOrNone []             = Right []
-        allOrNone ((Left l):_)   = Left l
-        allOrNone ((Right r):xs) = (r:) <$> allOrNone xs
+data Overlap = Overlap {
+    matchers    :: (ObjectMatcher, ObjectMatcher)
+    , examples  :: [[AttributeAssignment]]
+}
 
-        stringValue :: Value -> Either String String
-        stringValue (String text) = Right $ T.unpack text
-        stringValue _             = Left "Value must be a string"
+findOverlapping :: [ObjectMatcher] -> [Overlap]
+findOverlapping ms = [Overlap (p, q) int | (p, q) <- pairs ms, let int = intersection p q, int /= []]
 
-        valueToObjectMatcher :: Value -> Either String ObjectMatcher
-        valueToObjectMatcher (Array arr) = Conjunction <$> allOrNone (map valueToObjectMatcher $ V.toList arr)
-        valueToObjectMatcher (Object obj)
-            | Map.member "not"       obj = Not <$> valueToObjectMatcher (obj ! "not")
-            | Map.member "attribute" obj =
-                case obj ! "attribute" of
-                    String attribute ->
-                        if Map.member "values" obj
-                        then case obj ! "values" of
-                            Array values -> Attribute (T.unpack attribute) <$> allOrNone (map stringValue $ V.toList values)
-                            _ -> Left "Attribute values must be an array"
-                        else Left "Missing values on attribute matcher"
-                    _ -> Left "Attribute name must be a string"
-        valueToObjectMatcher _ = Left "Failed to read: not a valid object matcher"
+maximalIndependentSets :: [ObjectMatcher] -> [Overlap] -> [[ObjectMatcher]]
+maximalIndependentSets ms overlapping =
+    let incompatible = do (p, q) <- matchers <$> overlapping; [(p, q), (q, p)]
+        edges = curry $ not . (`elem` incompatible)
+    in getMaximalCliques edges ms
 
-checkIndependence :: ObjectMatcher -> ObjectMatcher -> IO ()
-checkIndependence a b =
-    case intersection a b of
-        []       -> return ()
-        examples -> do putStrLn "Found overlapping matchers:"
-                       putStrLn $ " - " ++ show a
-                       putStrLn $ " - " ++ show b
-                       putStrLn "Examples:"
-                       forM_ (take 10 examples) printExample
-                       putStrLn ""
-    where
-        printExample :: [AttributeAssignment] -> IO ()
-        printExample example = putStrLn $ " - " ++ intercalate ", " (map show example)
+report :: [ObjectMatcher] -> IO ()
+report ms =
+    let overlapping = findOverlapping ms
+        independent = maximalIndependentSets ms overlapping
+    in case overlapping of
+        [] -> do putStrLn "All matchers are independent"
+                 exitSuccess
+        _  -> do putStrLn "Found overlapping matchers:"
+                 forM_ overlapping printOverlap
+                 putStrLn ""
+                 putStrLn "Maximal independent sets:"
+                 forM_ independent (\ms' -> putStrLn $ " - " ++ intercalate "\n   " (show <$> ms'))
+                 exitWith (ExitFailure 1)
+
+printOverlap :: Overlap -> IO ()
+printOverlap (Overlap (p, q) examples) =
+    do putStrLn ""
+       print p
+       print q
+       putStrLn ""
+       putStrLn "Overlapping instances (at most 10 shown):"
+       forM_ (take 10 examples) (\ex -> putStrLn $ " - " ++ intercalate ", " (show <$> ex))
 
 main :: IO ()
 main = do
         input <- readAll
-        case parseObjectMatchers input of
-            Left err    -> putStrLn err
-            Right matchers -> mapM_ (uncurry checkIndependence) $ pairs matchers
+        case parseOnly (many1' objectMatcher) (BSU.fromString input) of
+            Left err       -> do putStrLn err
+                                 exitWith (ExitFailure 3)
+            Right matchers -> report matchers
