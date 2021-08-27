@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 31ad6ea862f7c4c2607c7b3fb205fecb33eac311d111844099f127323cb719d8
+-- hash: 811845ddeadb545c02410c89ca1be17dc719f07e63351454c8212b8cda44f777
 
 name:           object-matcher-independence
 version:        0.1.0.0
@@ -38,6 +38,7 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , maximal-cliques
     , minisat-solver
   default-language: Haskell2010
 
@@ -58,6 +59,7 @@ executable objmind
     , maximal-cliques
     , minisat-solver
     , object-matcher-independence
+    , optparse-applicative
     , text
     , unordered-containers
     , utf8-string
