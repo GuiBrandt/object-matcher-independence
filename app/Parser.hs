@@ -5,7 +5,6 @@ module Parser (objectMatcher) where
 import Control.Monad ((<=<))
 import Control.Monad.Fail (fail)
 import Data.Aeson (Value (Array, Object, String), json')
-import Data.Aeson.Encode.Pretty (encodePretty)
 import Data.Attoparsec.ByteString (Parser, many1', parseOnly)
 import qualified Data.ByteString.Lazy.UTF8 as BLU
 import qualified Data.ByteString.UTF8 as BSU
@@ -13,7 +12,7 @@ import Data.HashMap.Strict ((!))
 import qualified Data.HashMap.Strict as Map
 import qualified Data.Text as T
 import qualified Data.Vector as V
-import Lib (ObjectMatcher (..))
+import Data.ObjectMatcher (ObjectMatcher(..))
 
 objectMatcher :: Parser ObjectMatcher
 objectMatcher = do
@@ -33,20 +32,15 @@ toObjectMatcher (Object obj)
 toObjectMatcher _ = Left "Failed to read: not a valid object matcher"
 
 conjunction :: [Value] -> Either String ObjectMatcher
-conjunction = fmap Conjunction . allOrNone . fmap toObjectMatcher
+conjunction = fmap Conjunction . mapM toObjectMatcher
 
 negation :: Value -> Either String ObjectMatcher
 negation = fmap Not . toObjectMatcher
 
 attribute :: Value -> Value -> Either String ObjectMatcher
-attribute (String name) (Array values) = Attribute (T.unpack name) <$> allOrNone (map stringValue $ V.toList values)
+attribute (String name) (Array values) = Attribute (T.unpack name) <$> mapM stringValue (V.toList values)
 attribute _ _ = Left "Attribute name must be a string, and values must be an array of strings"
 
 stringValue :: Value -> Either String String
 stringValue (String text) = Right $ T.unpack text
 stringValue _ = Left "Value must be a string"
-
-allOrNone :: [Either a b] -> Either a [b]
-allOrNone [] = Right []
-allOrNone ((Left l) : _) = Left l
-allOrNone ((Right r) : xs) = (r :) <$> allOrNone xs

@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 811845ddeadb545c02410c89ca1be17dc719f07e63351454c8212b8cda44f777
+-- hash: 1dd984e5a0d5e76c2a997ce5c89fc8684cf48d6997337412780163e885909155
 
 name:           object-matcher-independence
 version:        0.1.0.0
@@ -29,8 +29,10 @@ library
   exposed-modules:
       Data.AttributeAssignment
       Data.ObjectMatcher
+      Data.ObjectMatcher.Independence
+      Data.ObjectMatcher.Internal
+      Data.ObjectMatcher.Satisfiability
       Internal.Utils
-      Lib
   other-modules:
       Paths_object_matcher_independence
   hs-source-dirs:
@@ -38,13 +40,16 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , hashable
     , maximal-cliques
     , minisat-solver
+    , unordered-containers
   default-language: Haskell2010
 
 executable objmind
   main-is: Main.hs
   other-modules:
+      Main.Report
       Parser
       Paths_object_matcher_independence
   hs-source-dirs:
@@ -52,10 +57,10 @@ executable objmind
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
-    , aeson-pretty
     , attoparsec
     , base >=4.7 && <5
     , containers
+    , hashable
     , maximal-cliques
     , minisat-solver
     , object-matcher-independence

@@ -24,6 +24,8 @@ dependencies:
 - minisat-solver
 - maximal-cliques
 - containers
+- unordered-containers
+- hashable
 
 library:
   source-dirs: src
@@ -37,10 +39,8 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - object-matcher-independence    
-    - unordered-containers
+    - object-matcher-independence
     - aeson
-    - aeson-pretty
     - attoparsec
     - utf8-string
     - vector
